@@ -1,0 +1,18 @@
+.text {
+    font-family: 'Roboto', sans-serif;
+    color: white;
+    font-size: 2em;
+}
+
+.defeated {
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+.error {
+    color: red;
+}
+
+.container {
+    padding: 10px;
+}
