@@ -37,7 +37,9 @@ function getBossDisplayHtml(boss, data) {
 
 function getErrorMessageHtml(data) {
     if (data === null) {
-        return `<div class="text error">Unable to fetch. Ensure server is running</div>`
+        return `<div class="text error">Unable to fetch. Ensure server is running</div>`;
+    } else if (data && data.length === 0) {
+        return `<div class="text error">Unable to fetch. Ensure Dark Souls III is running</div>`;
     }
 
     return '';
