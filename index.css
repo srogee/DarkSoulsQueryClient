@@ -10,7 +10,8 @@
 }
 
 .error {
-    color: red;
+    color: lightcoral;
+    font-size: 1.5em;
 }
 
 .container {

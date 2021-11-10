@@ -1,4 +1,4 @@
-const url = `http://localhost:5000/WorldFlags`
+const url = `http://localhost:5000/ReadArbitraryValues`
 const timeBetweenQueries = 1000;
 const bosses = [
     {
@@ -27,9 +27,12 @@ const bosses = [
     }
 ];
 
+function hasBossBeenDefeated(boss, data) {
+    return data && data.find(flag => flag.id === boss.id && flag.value) != null;
+}
+
 function getBossDisplayHtml(boss, data) {
-    var isDefeated = data && data.find(flag => flag.id === boss.id && flag.value) != null;
-    if (isDefeated) {
+    if (hasBossBeenDefeated(boss, data)) {
         return `<div class="text defeated">${boss.name}</div>`;
     }
     return `<div class="text">${boss.name}</div>`;
@@ -37,9 +40,9 @@ function getBossDisplayHtml(boss, data) {
 
 function getErrorMessageHtml(data) {
     if (data === null) {
-        return `<div class="text error">Unable to fetch. Ensure server is running</div>`;
+        return `<div class="text error">(Unable to fetch. Ensure server is running)</div>`;
     } else if (data && data.length === 0) {
-        return `<div class="text error">Unable to fetch. Ensure Dark Souls III is running</div>`;
+        return `<div class="text error">(Unable to fetch. Ensure Dark Souls III is running)</div>`;
     }
 
     return '';
@@ -47,17 +50,37 @@ function getErrorMessageHtml(data) {
 
 doQueryLoop();
 async function doQueryLoop() {
-    var data = await query();
-    var message = getErrorMessageHtml(data);
-    var str = message + bosses.map(boss => getBossDisplayHtml(boss, data)).join('');
-    document.getElementById("textDiv").innerHTML = str;
+    let data = await query();
+    let errorMessage = getErrorMessageHtml(data);
+
+    let sortedBosses = [...bosses].sort((a, b) => {
+        let aDefeated = hasBossBeenDefeated(a, data);
+        let bDefeated = hasBossBeenDefeated(b, data);
+        if (aDefeated === bDefeated) {
+            return bosses.findIndex(boss => boss.id === a.id) - bosses.findIndex(boss => boss.id === b.id);
+        } else {
+            return bDefeated - aDefeated;
+        }
+    });
+    let bossesHtml = sortedBosses.map(boss => getBossDisplayHtml(boss, data)).join('');
+
+    document.getElementById("textDiv").innerHTML = errorMessage + bossesHtml;
     setTimeout(doQueryLoop, timeBetweenQueries);
 }
 
 async function query() {
-    var data = null;
+    let valuesToInspect = bosses.map(boss => boss.id);
+    let data = null;
     try {
-        data = await fetch(url).then(response => response.json());
+        let params = {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(valuesToInspect)
+        }
+        data = await fetch(url, params).then(response => response.json());
         if (data) {
             return data;
         }
